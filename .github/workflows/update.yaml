@@ -1,0 +1,43 @@
+name: Auto Fetch & Deploy list.txt
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 每天 UTC+0 时间 2:00，约北京时间上午10点
+  workflow_dispatch:     # 手动触发支持
+  push:
+    paths:
+      - fetch.py         # 如果脚本更新也触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run fetch.py
+      run: |
+        python fetch.py
+
+    - name: Deploy list.txt to gh-pages
+      run: |
+        mkdir -p out
+        cp list.txt out/
+      continue-on-error: true
+
+    - name: Push to gh-pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: ./out
