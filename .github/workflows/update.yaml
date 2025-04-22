@@ -1,20 +1,16 @@
-name: Auto Fetch & Deploy list.txt
+name: Auto Fetch & Deploy to gh-pages
 
 on:
+  workflow_dispatch:  # 手动触发
   schedule:
-    - cron: '0 2 * * *'  # 每天 UTC 2:00 运行一次
-  workflow_dispatch:     # 支持手动触发
-  push:
-    paths:
-      - fetch.py
-      - .github/workflows/update.yaml
+    - cron: '0 2 * * *'  # 每天 UTC 2:00，约等于北京时间上午10点
 
 jobs:
-  update-list:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout source
       uses: actions/checkout@v3
 
     - name: Set up Python
@@ -28,7 +24,7 @@ jobs:
     - name: Run fetch.py
       run: python fetch.py
 
-    - name: Deploy to GitHub Pages
+    - name: Deploy list results to gh-pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
