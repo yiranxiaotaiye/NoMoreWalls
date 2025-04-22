@@ -2,18 +2,19 @@ name: Auto Fetch & Deploy list.txt
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天 UTC+0 时间 2:00，约北京时间上午10点
+    - cron: '0 2 * * *'  # 每天 UTC+0 时间 2:00（北京时间上午10点）
   workflow_dispatch:     # 手动触发支持
   push:
     paths:
-      - fetch.py         # 如果脚本更新也触发
+      - fetch.py
+      - .github/workflows/update.yaml
 
 jobs:
-  build:
+  update-list:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up Python
@@ -25,19 +26,15 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: Run fetch.py
+    - name: Run fetch.py to generate list.txt
       run: |
         python fetch.py
 
-    - name: Deploy list.txt to gh-pages
-      run: |
-        mkdir -p out
-        cp list.txt out/
-      continue-on-error: true
-
-    - name: Push to gh-pages
+    - name: Commit list.txt to gh-pages branch
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_branch: gh-pages
-        publish_dir: ./out
+        publish_dir: .             # 发布当前目录（根目录）
+        allow_empty_commit: true
+        keep_files: true           # 不清除其他文件（如果你还有其他静态资源）
